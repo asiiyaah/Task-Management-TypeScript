@@ -1,3 +1,11 @@
 {
-  "tasks": []
+  "tasks": [
+    {
+      "title": "Learn Express",
+      "description": "Build Task API",
+      "status": "pending",
+      "assignedTo": null,
+      "id": 1
+    }
+  ]
 }
