@@ -1,4 +1,4 @@
-import { CreateTasks, Task } from "../types/task"
+import { CreateTasks, Task, UpdateTask } from "../types/task";
 
 export async function getTasks(): Promise<Task[]> {
     const response = await fetch("http://localhost:3001/tasks");
@@ -38,6 +38,35 @@ export async function getTask(id: string): Promise<Task> {
 
     if (!response.ok) {
         throw new Error("Failed to fetch task");
+    }
+
+    const task: Task = await response.json();
+
+    return task;
+}
+
+export async function updateTask(
+    id: string,
+    taskData: UpdateTask
+): Promise<Task> {
+
+    const response = await fetch(
+        `http://localhost:3001/tasks/${id}`,
+        {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                title: taskData.title,
+                description: taskData.description,
+                status: taskData.status
+            })
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error("Failed to update task");
     }
 
     const task: Task = await response.json();

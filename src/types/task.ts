@@ -10,3 +10,9 @@ export interface CreateTasks {
     title: string;
     description: string;
 }
+
+export interface UpdateTask {
+    title: string;
+    description: string;
+    status: string;
+}
