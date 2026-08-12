@@ -30,3 +30,17 @@ export async function createTask(taskData: CreateTasks): Promise<Task> {
     const task: Task = await response.json();
     return task;
 }
+
+export async function getTask(id: string): Promise<Task> {
+    const response = await fetch(
+        `http://localhost:3001/tasks/${id}`
+    );
+
+    if (!response.ok) {
+        throw new Error("Failed to fetch task");
+    }
+
+    const task: Task = await response.json();
+
+    return task;
+}

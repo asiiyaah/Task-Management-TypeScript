@@ -1,6 +1,6 @@
 import {Request , Response} from "express"
 
-import { getTasks,createTask } from "../services/taskService"  
+import { getTasks,getTask ,createTask } from "../services/taskService"  
 import { CreateTasks } from "../types/task";
 
 export async function getTasksController(
@@ -26,6 +26,24 @@ export async function createTasksController(req: Request<{}, {}, CreateTasks>, r
     }catch(error){
         res.status(500).json({
             message: "Failed to create task"
+        });
+    }
+}
+
+export async function getTaskController(
+    req: Request,
+    res: Response
+) {
+    try {
+        const id = req.params.id;
+
+        const task = await getTask(id);
+
+        res.json(task);
+    } catch (error) {
+        console.error("GET TASK ERROR:", error);
+        res.status(500).json({
+            message: "Failed to fetch task"
         });
     }
 }
