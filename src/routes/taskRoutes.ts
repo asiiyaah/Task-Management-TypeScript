@@ -1,0 +1,9 @@
+import { Router } from "express"
+
+import { getTasksController } from "../controllers/taskController"
+
+const router = Router();
+
+router.get("/tasks",getTasksController);
+
+export default router;

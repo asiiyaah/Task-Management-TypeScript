@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "tsx watch src/server.ts",
+    "db": "json-server db.json --port 3001"
   },
   "keywords": [],
   "author": "",
@@ -15,6 +16,8 @@
   "devDependencies": {
     "@types/express": "^5.0.6",
     "@types/node": "^26.2.0",
+    "json-server": "^0.17.4",
+    "tsx": "^4.23.12",
     "typescript": "^7.0.2"
   }
 }
