@@ -35,7 +35,13 @@ export async function getTaskController(
     res: Response
 ) {
     try {
-        const id = req.params.id;
+        // Normalize params.id which can be string | string[] in some request typings
+        const rawId = req.params.id;
+        const id = Array.isArray(rawId) ? rawId[0] : rawId;
+
+        if (!id) {
+            return res.status(400).json({ message: "Task id is required" });
+        }
 
         const task = await getTask(id);
 
