@@ -1,18 +1,29 @@
 {
-  "tasks": [
+  "users": [
     {
-      "title": "Learn Express",
-      "description": "Build Task API",
-      "status": "pending",
-      "assignedTo": null,
-      "id": 1
+      "id": "1786553412455",
+      "name": "Test User",
+      "email": "user@test.com",
+      "password": "$2b$10$ab6f6NhkNR1xj3YtqOunoegFNbRTTI0D1MixbRQPWo6OhwfH0KNg6",
+      "role": "user"
     },
     {
-      "title": "Test POST",
-      "description": "Testing task creation",
-      "status": "pending",
-      "assignedTo": null,
-      "id": 2
+      "id": "1786553446756",
+      "name": "Second User",
+      "email": "second@test.com",
+      "password": "$2b$10$a5yW4QozyHrEjwLv4EdRUuXhjwv9apQn7.3dj4Z8jbyPT99swP0cy",
+      "role": "admin"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "1786554086358",
+      "title": "Only title changed",
+      "description": "Updated description",
+      "completed": true,
+      "createdAt": "2026-08-12T17:01:26.358Z",
+      "updatedAt": "2026-08-12T17:27:41.003Z",
+      "assignedTo": "999999999"
     }
   ]
 }

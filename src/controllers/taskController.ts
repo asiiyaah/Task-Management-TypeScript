@@ -1,81 +1,188 @@
-import {Request , Response} from "express"
+import {
+    Request,
+    Response,
+    NextFunction
+} from "express";
 
 import {
     getTasks,
     getTask,
     createTask,
-    updateTask
+    updateTask,
+    deleteTask,
+    assignTask
 } from "../services/taskService";
 
-import { CreateTasks, UpdateTask } from "../types/task";
+import {
+    CreateTasks,
+    UpdateTask
+} from "../types/task";
+
 
 export async function getTasksController(
     req: Request,
-    res: Response
+    res: Response,
+    next: NextFunction
 ) {
+
     try {
-        const tasks = await getTasks();
 
-        res.json(tasks);
+        const tasks =
+            await getTasks();
+
+        res.status(200).json(tasks);
+
     } catch (error) {
-        res.status(500).json({
-            message: "Failed to fetch tasks"
-        });
+
+        next(error);
     }
 }
 
-export async function createTasksController(req: Request<{}, {}, CreateTasks>, res:Response) {
-    try{
-        const taskData = req.body;
-        const task = await createTask(taskData);
+
+export async function createTasksController(
+    req: Request<{}, {}, CreateTasks>,
+    res: Response,
+    next: NextFunction
+) {
+
+    try {
+
+        const task =
+            await createTask(req.body);
+
         res.status(201).json(task);
-    }catch(error){
-        res.status(500).json({
-            message: "Failed to create task"
-        });
+
+    } catch (error) {
+
+        next(error);
     }
 }
+
 
 export async function getTaskController(
     req: Request,
-    res: Response
+    res: Response,
+    next: NextFunction
 ) {
+
     try {
-        // Normalize params.id which can be string | string[] in some request typings
-        const rawId = req.params.id;
-        const id = Array.isArray(rawId) ? rawId[0] : rawId;
+
+        const id = req.params.id;
 
         if (!id) {
-            return res.status(400).json({ message: "Task id is required" });
+            return res.status(400).json({
+                message: "Task id is required"
+            });
         }
 
-        const task = await getTask(id);
+        const task =
+            await getTask(id);
 
-        res.json(task);
+        if (!task) {
+            return res.status(404).json({
+                message: "Task not found"
+            });
+        }
+
+        res.status(200).json(task);
+
     } catch (error) {
-        console.error("GET TASK ERROR:", error);
-        res.status(500).json({
-            message: "Failed to fetch task"
-        });
+
+        next(error);
     }
 }
 
+
 export async function updateTaskController(
-    req: Request<{ id: string }, {}, UpdateTask>,
-    res: Response
+    req: Request<
+        { id: string },
+        {},
+        UpdateTask
+    >,
+    res: Response,
+    next: NextFunction
 ) {
+
     try {
+
         const id = req.params.id;
-        const taskData = req.body;
 
-        const task = await updateTask(id, taskData);
+        const task =
+            await updateTask(
+                id,
+                req.body
+            );
 
-        res.json(task);
+        if (!task) {
+            return res.status(404).json({
+                message: "Task not found"
+            });
+        }
+
+        res.status(200).json(task);
+
     } catch (error) {
-        console.error("UPDATE TASK ERROR:", error);
 
-        res.status(500).json({
-            message: "Failed to update task"
-        });
+        next(error);
+    }
+}
+
+
+export async function deleteTaskController(
+    req: Request,
+    res: Response,
+    next: NextFunction
+) {
+
+    try {
+
+        const id = req.params.id;
+
+        const deleted =
+            await deleteTask(id);
+
+        if (!deleted) {
+            return res.status(404).json({
+                message: "Task not found"
+            });
+        }
+
+        res.status(204).send();
+
+    } catch (error) {
+
+        next(error);
+    }
+}
+
+
+export async function assignTaskController(
+    req: Request,
+    res: Response,
+    next: NextFunction
+) {
+
+    try {
+
+        const taskId = req.params.id;
+        const { userId } = req.body;
+
+        const task =
+            await assignTask(
+                taskId,
+                userId
+            );
+
+        if (!task) {
+            return res.status(404).json({
+                message: "Task not found"
+            });
+        }
+
+        res.status(200).json(task);
+
+    } catch (error) {
+
+        next(error);
     }
 }

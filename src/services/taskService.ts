@@ -1,75 +1,97 @@
-import { CreateTasks, Task, UpdateTask } from "../types/task";
+import {
+    getAllTasks,
+    getTaskById,
+    createTask as createTaskRepository,
+    updateTask as updateTaskRepository,
+    deleteTask as deleteTaskRepository,
+    assignTask as assignTaskRepository
+} from "../repositories/taskRepository";
+
+import {
+    Task,
+    CreateTasks,
+    UpdateTask
+} from "../types/task";
+
+import * as userRepository
+    from "../repositories/userRepository";
+
 
 export async function getTasks(): Promise<Task[]> {
-    const response = await fetch("http://localhost:3001/tasks");
-    if (!response.ok) {
-        throw new Error("Failed to fetch tasks");
-    }
-    const tasks: Task[] = await response.json();
-    return tasks;
+
+    return await getAllTasks();
 }
 
-export async function createTask(taskData: CreateTasks): Promise<Task> {
-    const response = await fetch("http://localhost:3001/tasks", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            title: taskData.title,
-            description: taskData.description,
-            status: "pending",
-            assignedTo: null
-        })
-    });
 
-    if (!response.ok) {
-        throw new Error("Failed to create task");
-    }
+export async function getTask(
+    id: string
+): Promise<Task | null> {
 
-    const task: Task = await response.json();
-    return task;
+    return await getTaskById(id);
 }
 
-export async function getTask(id: string): Promise<Task> {
-    const response = await fetch(
-        `http://localhost:3001/tasks/${id}`
-    );
 
-    if (!response.ok) {
-        throw new Error("Failed to fetch task");
-    }
+export async function createTask(
+    taskData: CreateTasks
+): Promise<Task> {
 
-    const task: Task = await response.json();
+    const task: Task = {
+        id: Date.now().toString(),
+        title: taskData.title,
+        description: taskData.description,
+        completed: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    };
 
-    return task;
+    return await createTaskRepository(task);
 }
+
 
 export async function updateTask(
     id: string,
     taskData: UpdateTask
-): Promise<Task> {
+): Promise<Task | null> {
 
-    const response = await fetch(
-        `http://localhost:3001/tasks/${id}`,
-        {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                title: taskData.title,
-                description: taskData.description,
-                status: taskData.status
-            })
-        }
+    return await updateTaskRepository(
+        id,
+        taskData
     );
+}
 
-    if (!response.ok) {
-        throw new Error("Failed to update task");
+
+export async function deleteTask(
+    id: string
+): Promise<boolean> {
+
+    return await deleteTaskRepository(id);
+}
+
+
+export async function assignTask(
+    taskId: string,
+    userId: string
+): Promise<Task | null> {
+
+    // Check whether the user exists
+    const user =
+        await userRepository.getUserById(userId);
+
+    if (!user) {
+        const error = new Error("User not found");
+
+        (
+            error as Error & {
+                statusCode: number
+            }
+        ).statusCode = 404;
+
+        throw error;
     }
 
-    const task: Task = await response.json();
-
-    return task;
+    // User exists, so assign the task
+    return await assignTaskRepository(
+        taskId,
+        userId
+    );
 }

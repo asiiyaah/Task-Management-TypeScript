@@ -1,18 +1,21 @@
 export interface Task {
     id: string;
     title: string;
-    description: string;
-    status: "pending" | "in-progress" | "completed";
-    assignedTo: string | null;
+    description?: string;
+    completed: boolean;
+    assignedTo?: string;
+    createdAt: string;
+    updatedAt: string;
 }
 
 export interface CreateTasks {
     title: string;
-    description: string;
+    description?: string;
 }
 
 export interface UpdateTask {
-    title: string;
-    description: string;
-    status: string;
+    title?: string;
+    description?: string;
+    completed?: boolean;
+    assignedTo?: string;
 }
