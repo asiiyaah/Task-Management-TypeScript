@@ -6,6 +6,13 @@
       "status": "pending",
       "assignedTo": null,
       "id": 1
+    },
+    {
+      "title": "Test POST",
+      "description": "Testing task creation",
+      "status": "pending",
+      "assignedTo": null,
+      "id": 2
     }
   ]
 }
