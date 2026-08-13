@@ -11,7 +11,7 @@ export function validateCreateTask(
     next: NextFunction
 ) {
 
-    const { title } = req.body;
+    const { title } = req.body;   //destructuring
 
     if (
         !title ||

@@ -1,0 +1,34 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("user")
+
+  tasks     Task[]
+
+}
+
+model Task {
+  id          String   @id
+  title       String
+  description String?
+  completed   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  assignedTo  String?
+  assignee    User?    @relation(fields: [assignedTo], references: [id])
+
+  @@index([assignedTo])
+}
