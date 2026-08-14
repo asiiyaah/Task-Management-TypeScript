@@ -36,13 +36,14 @@ export async function createTask(
 ): Promise<Task> {
 
     const task: Task = {
-        id: Date.now().toString(),
-        title: taskData.title,
-        description: taskData.description,
-        completed: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-    };
+    id: Date.now().toString(),
+    title: taskData.title,
+    description: taskData.description ?? null,
+    completed: false,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    assignedTo: null
+};
 
     return await createTaskRepository(task);
 }

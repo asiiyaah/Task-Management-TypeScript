@@ -1,11 +1,11 @@
 export interface Task {
     id: string;
     title: string;
-    description?: string;
+    description: string | null;
     completed: boolean;
-    assignedTo?: string;
-    createdAt: string;
-    updatedAt: string;
+    createdAt: Date;
+    updatedAt: Date;
+    assignedTo: string | null;
 }
 
 export interface CreateTasks {
@@ -15,7 +15,7 @@ export interface CreateTasks {
 
 export interface UpdateTask {
     title?: string;
-    description?: string;
+    description?: string | null;
     completed?: boolean;
-    assignedTo?: string;
+    assignedTo?: string | null;
 }

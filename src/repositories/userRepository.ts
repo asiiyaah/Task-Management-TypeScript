@@ -6,11 +6,20 @@ export async function getUserByEmail(
     email: string
 ): Promise<User | null> {
 
-    return await prisma.user.findUnique({
+    const user = await prisma.user.findUnique({
         where: {
             email
         }
     });
+
+    if (!user) {
+        return null;
+    }
+
+    return {
+        ...user,
+        role: user.role as "admin" | "user"
+    };
 }
 
 
@@ -18,11 +27,20 @@ export async function getUserById(
     id: string
 ): Promise<User | null> {
 
-    return await prisma.user.findUnique({
+    const user = await prisma.user.findUnique({
         where: {
             id
         }
     });
+
+    if (!user) {
+        return null;
+    }
+
+    return {
+        ...user,
+        role: user.role as "admin" | "user"
+    };
 }
 
 
@@ -30,7 +48,7 @@ export async function createUser(
     user: User
 ): Promise<User> {
 
-    return await prisma.user.create({
+    const createdUser = await prisma.user.create({
         data: {
             id: user.id,
             name: user.name,
@@ -39,4 +57,9 @@ export async function createUser(
             role: user.role
         }
     });
+
+    return {
+        ...createdUser,
+        role: createdUser.role as "admin" | "user"
+    };
 }

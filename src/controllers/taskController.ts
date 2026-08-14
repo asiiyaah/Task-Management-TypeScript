@@ -60,7 +60,7 @@ export async function createTasksController(
 
 
 export async function getTaskController(
-    req: Request,
+    req: Request<{ id: string }>,
     res: Response,
     next: NextFunction
 ) {
@@ -129,10 +129,10 @@ export async function updateTaskController(
 
 
 export async function deleteTaskController(
-    req: Request,
+    req: Request<{ id: string }>,
     res: Response,
     next: NextFunction
-) {
+){
 
     try {
 
@@ -157,7 +157,7 @@ export async function deleteTaskController(
 
 
 export async function assignTaskController(
-    req: Request,
+    req: Request<{ id: string }>,
     res: Response,
     next: NextFunction
 ) {
