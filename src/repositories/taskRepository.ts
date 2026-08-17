@@ -7,6 +7,16 @@ export async function getAllTasks(): Promise<Task[]> {
     return await prisma.task.findMany();
 }
 
+export async function getTasksByAssignee(
+    userId: string
+): Promise<Task[]> {
+
+    return await prisma.task.findMany({
+        where: {
+            assignedTo: userId
+        }
+    });
+}
 
 export async function getTaskById(
     id: string

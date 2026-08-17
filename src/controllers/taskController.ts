@@ -5,6 +5,10 @@ import {
 } from "express";
 
 import {
+    AuthenticatedRequest
+} from "../middleware/authMiddleware";
+
+import {
     getTasks,
     getTask,
     createTask,
@@ -20,15 +24,23 @@ import {
 
 
 export async function getTasksController(
-    req: Request,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
 ) {
 
     try {
 
-        const tasks =
-            await getTasks();
+        if (!req.user) {
+            return res.status(401).json({
+                message: "Authentication required"
+            });
+        }
+
+        const tasks = await getTasks(
+            req.user.userId,
+            req.user.role
+        );
 
         res.status(200).json(tasks);
 

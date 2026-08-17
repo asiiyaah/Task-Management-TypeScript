@@ -1,5 +1,6 @@
 import {
     getAllTasks,
+    getTasksByAssignee,
     getTaskById,
     createTask as createTaskRepository,
     updateTask as updateTaskRepository,
@@ -17,9 +18,16 @@ import * as userRepository
     from "../repositories/userRepository";
 
 
-export async function getTasks(): Promise<Task[]> {
+export async function getTasks(
+    userId: string,
+    role: "user" | "admin"
+): Promise<Task[]> {
 
-    return await getAllTasks();
+    if (role === "admin") {
+        return await getAllTasks();
+    }
+
+    return await getTasksByAssignee(userId);
 }
 
 
