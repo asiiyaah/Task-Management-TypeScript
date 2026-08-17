@@ -2,23 +2,16 @@ import { Router } from "express";
 
 import {
     getTasksController,
-    createTasksController,
     getTaskController,
+    createTaskController,
     updateTaskController,
     deleteTaskController,
     assignTaskController
 } from "../controllers/taskController";
 
 import {
-    authMiddleware,
-    adminMiddleware
+    authMiddleware
 } from "../middleware/authMiddleware";
-
-import {
-    validateCreateTask,
-    validateUpdateTask,
-    validateAssignment
-} from "../middleware/validationMiddleware";
 
 
 const router = Router();
@@ -41,15 +34,13 @@ router.get(
 router.post(
     "/tasks",
     authMiddleware,
-    validateCreateTask,
-    createTasksController
+    createTaskController
 );
 
 
 router.put(
     "/tasks/:id",
     authMiddleware,
-    validateUpdateTask,
     updateTaskController
 );
 
@@ -64,11 +55,24 @@ router.delete(
 router.post(
     "/tasks/:id/assign",
     authMiddleware,
-    adminMiddleware,
-    validateAssignment,
+    (req, res, next) => {
+
+        if (!req.user) {
+            return res.status(401).json({
+                message: "Authentication required"
+            });
+        }
+
+        if (req.user.role !== "admin") {
+            return res.status(403).json({
+                message: "Admin access required"
+            });
+        }
+
+        next();
+    },
     assignTaskController
 );
-
 
 
 export default router;

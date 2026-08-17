@@ -16,8 +16,8 @@ model User {
   password  String
   role      String   @default("user")
 
-  tasks     Task[]
-
+  tasks        Task[] @relation("TaskAssignee")
+  createdTasks Task[] @relation("TaskCreator")
 }
 
 model Task {
@@ -29,7 +29,11 @@ model Task {
   updatedAt   DateTime @updatedAt
 
   assignedTo  String?
-  assignee    User?    @relation(fields: [assignedTo], references: [id])
+  assignee    User?    @relation("TaskAssignee", fields: [assignedTo], references: [id])
+
+  createdBy   String
+  creator     User     @relation("TaskCreator", fields: [createdBy], references: [id])
 
   @@index([assignedTo])
+  @@index([createdBy])
 }

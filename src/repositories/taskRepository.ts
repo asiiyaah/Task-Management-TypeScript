@@ -1,22 +1,43 @@
 import { prisma } from "../lib/prisma";
-import { Task, UpdateTask } from "../types/task";
+
+import {
+    Task,
+    CreateTasks,
+    UpdateTask
+} from "../types/task";
 
 
 export async function getAllTasks(): Promise<Task[]> {
 
-    return await prisma.task.findMany();
+    return await prisma.task.findMany({
+        orderBy: {
+            createdAt: "desc"
+        }
+    });
 }
 
-export async function getTasksByAssignee(
+
+export async function getTasksForUser(
     userId: string
 ): Promise<Task[]> {
 
     return await prisma.task.findMany({
         where: {
-            assignedTo: userId
+            OR: [
+                {
+                    createdBy: userId
+                },
+                {
+                    assignedTo: userId
+                }
+            ]
+        },
+        orderBy: {
+            createdAt: "desc"
         }
     });
 }
+
 
 export async function getTaskById(
     id: string
@@ -40,8 +61,10 @@ export async function createTask(
             title: task.title,
             description: task.description,
             completed: task.completed,
-            createdAt: new Date(task.createdAt),
-            updatedAt: new Date(task.updatedAt)
+            createdAt: task.createdAt,
+            updatedAt: task.updatedAt,
+            createdBy: task.createdBy,
+            assignedTo: task.assignedTo
         }
     });
 }
@@ -49,7 +72,7 @@ export async function createTask(
 
 export async function updateTask(
     id: string,
-    taskData: UpdateTask
+    data: UpdateTask
 ): Promise<Task | null> {
 
     try {
@@ -58,12 +81,10 @@ export async function updateTask(
             where: {
                 id
             },
-            data: {
-                ...taskData
-            }
+            data
         });
 
-    } catch (error) {
+    } catch {
 
         return null;
     }
@@ -84,7 +105,7 @@ export async function deleteTask(
 
         return true;
 
-    } catch (error) {
+    } catch {
 
         return false;
     }
@@ -107,7 +128,7 @@ export async function assignTask(
             }
         });
 
-    } catch (error) {
+    } catch {
 
         return null;
     }

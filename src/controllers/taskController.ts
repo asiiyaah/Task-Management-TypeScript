@@ -1,5 +1,4 @@
 import {
-    Request,
     Response,
     NextFunction
 } from "express";
@@ -16,11 +15,6 @@ import {
     deleteTask,
     assignTask
 } from "../services/taskService";
-
-import {
-    CreateTasks,
-    UpdateTask
-} from "../types/task";
 
 
 export async function getTasksController(
@@ -42,27 +36,7 @@ export async function getTasksController(
             req.user.role
         );
 
-        res.status(200).json(tasks);
-
-    } catch (error) {
-
-        next(error);
-    }
-}
-
-
-export async function createTasksController(
-    req: Request<{}, {}, CreateTasks>,
-    res: Response,
-    next: NextFunction
-) {
-
-    try {
-
-        const task =
-            await createTask(req.body);
-
-        res.status(201).json(task);
+        return res.status(200).json(tasks);
 
     } catch (error) {
 
@@ -72,23 +46,24 @@ export async function createTasksController(
 
 
 export async function getTaskController(
-    req: Request<{ id: string }>,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
 ) {
 
     try {
 
-        const id = req.params.id;
-
-        if (!id) {
-            return res.status(400).json({
-                message: "Task id is required"
+        if (!req.user) {
+            return res.status(401).json({
+                message: "Authentication required"
             });
         }
 
-        const task =
-            await getTask(id);
+        const task = await getTask(
+            req.params.id,
+            req.user.userId,
+            req.user.role
+        );
 
         if (!task) {
             return res.status(404).json({
@@ -96,7 +71,35 @@ export async function getTaskController(
             });
         }
 
-        res.status(200).json(task);
+        return res.status(200).json(task);
+
+    } catch (error) {
+
+        next(error);
+    }
+}
+
+
+export async function createTaskController(
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+) {
+
+    try {
+
+        if (!req.user) {
+            return res.status(401).json({
+                message: "Authentication required"
+            });
+        }
+
+        const task = await createTask(
+            req.body,
+            req.user.userId
+        );
+
+        return res.status(201).json(task);
 
     } catch (error) {
 
@@ -106,24 +109,25 @@ export async function getTaskController(
 
 
 export async function updateTaskController(
-    req: Request<
-        { id: string },
-        {},
-        UpdateTask
-    >,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
 ) {
 
     try {
 
-        const id = req.params.id;
+        if (!req.user) {
+            return res.status(401).json({
+                message: "Authentication required"
+            });
+        }
 
-        const task =
-            await updateTask(
-                id,
-                req.body
-            );
+        const task = await updateTask(
+            req.params.id,
+            req.body,
+            req.user.userId,
+            req.user.role
+        );
 
         if (!task) {
             return res.status(404).json({
@@ -131,7 +135,7 @@ export async function updateTaskController(
             });
         }
 
-        res.status(200).json(task);
+        return res.status(200).json(task);
 
     } catch (error) {
 
@@ -141,17 +145,25 @@ export async function updateTaskController(
 
 
 export async function deleteTaskController(
-    req: Request<{ id: string }>,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
-){
+) {
 
     try {
 
-        const id = req.params.id;
+        if (!req.user) {
+            return res.status(401).json({
+                message: "Authentication required"
+            });
+        }
 
         const deleted =
-            await deleteTask(id);
+            await deleteTask(
+                req.params.id,
+                req.user.userId,
+                req.user.role
+            );
 
         if (!deleted) {
             return res.status(404).json({
@@ -159,7 +171,9 @@ export async function deleteTaskController(
             });
         }
 
-        res.status(204).send();
+        return res.status(200).json({
+            message: "Task deleted successfully"
+        });
 
     } catch (error) {
 
@@ -169,21 +183,17 @@ export async function deleteTaskController(
 
 
 export async function assignTaskController(
-    req: Request<{ id: string }>,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
 ) {
 
     try {
 
-        const taskId = req.params.id;
-        const { userId } = req.body;
-
-        const task =
-            await assignTask(
-                taskId,
-                userId
-            );
+        const task = await assignTask(
+            req.params.id,
+            req.body.userId
+        );
 
         if (!task) {
             return res.status(404).json({
@@ -191,7 +201,7 @@ export async function assignTaskController(
             });
         }
 
-        res.status(200).json(task);
+        return res.status(200).json(task);
 
     } catch (error) {
 

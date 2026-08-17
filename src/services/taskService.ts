@@ -1,6 +1,6 @@
 import {
     getAllTasks,
-    getTasksByAssignee,
+    getTasksForUser,
     getTaskById,
     createTask as createTaskRepository,
     updateTask as updateTaskRepository,
@@ -18,6 +18,22 @@ import * as userRepository
     from "../repositories/userRepository";
 
 
+function forbiddenError() {
+
+    const error = new Error(
+        "You do not have permission to access this task"
+    );
+
+    (
+        error as Error & {
+            statusCode: number
+        }
+    ).statusCode = 403;
+
+    return error;
+}
+
+
 export async function getTasks(
     userId: string,
     role: "user" | "admin"
@@ -27,31 +43,53 @@ export async function getTasks(
         return await getAllTasks();
     }
 
-    return await getTasksByAssignee(userId);
+    return await getTasksForUser(userId);
 }
 
 
 export async function getTask(
-    id: string
+    id: string,
+    userId: string,
+    role: "user" | "admin"
 ): Promise<Task | null> {
 
-    return await getTaskById(id);
+    const task = await getTaskById(id);
+
+    if (!task) {
+        return null;
+    }
+
+    if (role === "admin") {
+        return task;
+    }
+
+    const hasAccess =
+        task.createdBy === userId ||
+        task.assignedTo === userId;
+
+    if (!hasAccess) {
+        throw forbiddenError();
+    }
+
+    return task;
 }
 
 
 export async function createTask(
-    taskData: CreateTasks
+    taskData: CreateTasks,
+    userId: string
 ): Promise<Task> {
 
     const task: Task = {
-    id: Date.now().toString(),
-    title: taskData.title,
-    description: taskData.description ?? null,
-    completed: false,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    assignedTo: null
-};
+        id: Date.now().toString(),
+        title: taskData.title,
+        description: taskData.description ?? null,
+        completed: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        createdBy: userId,
+        assignedTo: null
+    };
 
     return await createTaskRepository(task);
 }
@@ -59,8 +97,27 @@ export async function createTask(
 
 export async function updateTask(
     id: string,
-    taskData: UpdateTask
+    taskData: UpdateTask,
+    userId: string,
+    role: "user" | "admin"
 ): Promise<Task | null> {
+
+    const task = await getTaskById(id);
+
+    if (!task) {
+        return null;
+    }
+
+    if (role !== "admin") {
+
+        const hasAccess =
+            task.createdBy === userId ||
+            task.assignedTo === userId;
+
+        if (!hasAccess) {
+            throw forbiddenError();
+        }
+    }
 
     return await updateTaskRepository(
         id,
@@ -70,8 +127,27 @@ export async function updateTask(
 
 
 export async function deleteTask(
-    id: string
+    id: string,
+    userId: string,
+    role: "user" | "admin"
 ): Promise<boolean> {
+
+    const task = await getTaskById(id);
+
+    if (!task) {
+        return false;
+    }
+
+    if (role !== "admin") {
+
+        const hasAccess =
+            task.createdBy === userId ||
+            task.assignedTo === userId;
+
+        if (!hasAccess) {
+            throw forbiddenError();
+        }
+    }
 
     return await deleteTaskRepository(id);
 }
@@ -82,12 +158,13 @@ export async function assignTask(
     userId: string
 ): Promise<Task | null> {
 
-    // Check whether the user exists
     const user =
         await userRepository.getUserById(userId);
 
     if (!user) {
-        const error = new Error("User not found");
+
+        const error =
+            new Error("User not found");
 
         (
             error as Error & {
@@ -98,7 +175,6 @@ export async function assignTask(
         throw error;
     }
 
-    // User exists, so assign the task
     return await assignTaskRepository(
         taskId,
         userId

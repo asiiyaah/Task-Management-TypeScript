@@ -5,6 +5,8 @@ export interface Task {
     completed: boolean;
     createdAt: Date;
     updatedAt: Date;
+
+    createdBy: string;
     assignedTo: string | null;
 }
 
@@ -17,5 +19,4 @@ export interface UpdateTask {
     title?: string;
     description?: string | null;
     completed?: boolean;
-    assignedTo?: string | null;
 }

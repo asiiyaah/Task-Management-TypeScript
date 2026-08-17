@@ -63,3 +63,23 @@ export async function createUser(
         role: createdUser.role as "admin" | "user"
     };
 }
+
+export async function getAllUsers(): Promise<User[]> {
+
+    const users = await prisma.user.findMany({
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true
+        },
+        orderBy: {
+            name: "asc"
+        }
+    });
+
+    return users.map((user) => ({
+        ...user,
+        role: user.role as "admin" | "user"
+    }));
+}
