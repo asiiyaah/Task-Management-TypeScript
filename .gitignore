@@ -1,8 +1,13 @@
 # Dependencies
 node_modules/
 
+# Next.js
+.next/
+out/
+
 # Build output
 dist/
+build/
 
 # Environment variables / secrets
 .env
@@ -15,6 +20,16 @@ src/generated/
 # Local database / old json-server data
 db.json
 
+# Vercel
+.vercel/
+
 # Logs
 *.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS / editor files
+.DS_Store
+*.pem

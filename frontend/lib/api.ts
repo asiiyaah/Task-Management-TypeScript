@@ -1,0 +1,166 @@
+const API_URL =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+
+export interface User {
+    id: string;
+    name: string;
+    email: string;
+    role: "admin" | "user";
+}
+
+export interface Task {
+    id: string;
+    title: string;
+    description: string | null;
+    completed: boolean;
+    createdAt: string;
+    updatedAt: string;
+    assignedTo: string | null;
+}
+
+export interface LoginResponse {
+    token: string;
+    user: User;
+}
+
+export interface RegisterResponse {
+    message: string;
+    user: User;
+}
+
+async function request<T>(
+    endpoint: string,
+    options: RequestInit = {}
+): Promise<T> {
+    const token =
+        typeof window !== "undefined"
+            ? localStorage.getItem("token")
+            : null;
+
+    const response = await fetch(`${API_URL}${endpoint}`, {
+        ...options,
+        headers: {
+            "Content-Type": "application/json",
+            ...(token
+                ? {
+                      Authorization: `Bearer ${token}`,
+                  }
+                : {}),
+            ...options.headers,
+        },
+    });
+
+    if (!response.ok) {
+        let message = "Something went wrong";
+
+        try {
+            const data = await response.json();
+            message = data.message || message;
+        } catch {
+            // Ignore invalid JSON response
+        }
+
+        if (response.status === 401) {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+        }
+
+        throw new Error(message);
+    }
+
+    if (response.status === 204) {
+        return undefined as T;
+    }
+
+    return response.json();
+}
+
+/* =========================
+   AUTH
+========================= */
+
+export async function login(
+    email: string,
+    password: string
+): Promise<LoginResponse> {
+    return request<LoginResponse>("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({
+            email,
+            password,
+        }),
+    });
+}
+
+export async function register(
+    name: string,
+    email: string,
+    password: string
+): Promise<RegisterResponse> {
+    return request<RegisterResponse>("/auth/register", {
+        method: "POST",
+        body: JSON.stringify({
+            name,
+            email,
+            password,
+        }),
+    });
+}
+
+/* =========================
+   TASKS
+========================= */
+
+export async function getTasks(): Promise<Task[]> {
+    return request<Task[]>("/tasks");
+}
+
+export async function getTask(id: string): Promise<Task> {
+    return request<Task>(`/tasks/${id}`);
+}
+
+export async function createTask(data: {
+    title: string;
+    description?: string;
+}): Promise<Task> {
+    return request<Task>("/tasks", {
+        method: "POST",
+        body: JSON.stringify(data),
+    });
+}
+
+export async function updateTask(
+    id: string,
+    data: Partial<
+        Pick<Task, "title" | "description" | "completed">
+    >
+): Promise<Task> {
+    return request<Task>(`/tasks/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+    });
+}
+
+export async function deleteTask(
+    id: string
+): Promise<void> {
+    return request<void>(`/tasks/${id}`, {
+        method: "DELETE",
+    });
+}
+
+/* =========================
+   ADMIN
+========================= */
+
+export async function assignTask(
+    taskId: string,
+    userId: string
+): Promise<Task> {
+    return request<Task>(`/tasks/${taskId}/assign`, {
+        method: "POST",
+        body: JSON.stringify({
+            userId,
+        }),
+    });
+}
