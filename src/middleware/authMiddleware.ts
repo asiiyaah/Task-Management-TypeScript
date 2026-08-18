@@ -24,28 +24,13 @@ export function authMiddleware(
     res: Response,
     next: NextFunction
 ) {
-    const authHeader =
-        req.headers.authorization;
+    const token = (req as any).cookies?.token as string | undefined;
 
-    if (!authHeader) {
+    if (!token) {
         return res.status(401).json({
             message: "Authentication token is required"
         });
     }
-
-    const parts =
-        authHeader.split(" ");
-
-    if (
-        parts.length !== 2 ||
-        parts[0] !== "Bearer"
-    ) {
-        return res.status(401).json({
-            message: "Invalid authorization format"
-        });
-    }
-
-    const token = parts[1];
 
     try {
         const decoded =

@@ -29,6 +29,8 @@ import {
     updateTask,
     deleteTask,
     assignTask,
+    getCurrentUser,
+    logout as logoutUser,
     Task,
     User,
 } from "../../lib/api";
@@ -79,31 +81,25 @@ export default function TasksPage() {
     ------------------------- */
 
     useEffect(() => {
+        let mounted = true;
 
-        const token =
-            localStorage.getItem("token");
-
-        const storedUser =
-            localStorage.getItem("user");
-
-        if (!token) {
-            router.replace("/login");
-            return;
-        }
-
-        if (storedUser) {
-
+        (async () => {
             try {
-                setCurrentUser(
-                    JSON.parse(storedUser)
-                );
-            } catch {
-                localStorage.removeItem("user");
+                const data = await getCurrentUser();
+
+                if (!mounted) return;
+
+                setCurrentUser(data.user);
+                setAuthenticated(true);
+            } catch (error) {
+                setAuthenticated(false);
+                router.replace("/login");
             }
-        }
+        })();
 
-        setAuthenticated(true);
-
+        return () => {
+            mounted = false;
+        };
     }, [router]);
 
 
@@ -415,15 +411,12 @@ export default function TasksPage() {
        Logout
     ------------------------- */
 
-    function logout() {
-
-        localStorage.removeItem(
-            "token"
-        );
-
-        localStorage.removeItem(
-            "user"
-        );
+    async function logout() {
+        try {
+            await logoutUser();
+        } catch (error) {
+            console.error("Logout failed:", error);
+        }
 
         queryClient.clear();
 

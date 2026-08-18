@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { getCurrentUser, logout as logoutUser } from "../../lib/api";
 
 type User = {
     id: string;
@@ -17,31 +18,32 @@ export default function ProfilePage() {
     const [user, setUser] = useState<User | null>(null);
 
     useEffect(() => {
+        let mounted = true;
 
-        const token = localStorage.getItem("token");
-        const storedUser = localStorage.getItem("user");
-
-        if (!token) {
-            router.replace("/login");
-            return;
-        }
-
-        if (storedUser) {
+        (async () => {
             try {
-                setUser(JSON.parse(storedUser));
+                const data = await getCurrentUser();
+
+                if (!mounted) return;
+
+                setUser(data.user as unknown as User);
             } catch {
-                localStorage.removeItem("user");
                 router.replace("/login");
             }
-        }
+        })();
 
+        return () => {
+            mounted = false;
+        };
     }, [router]);
 
 
-    function logout() {
-
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
+    async function logout() {
+        try {
+            await logoutUser();
+        } catch (error) {
+            console.error("Logout failed:", error);
+        }
 
         router.replace("/login");
     }
