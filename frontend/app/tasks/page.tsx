@@ -15,6 +15,14 @@ import {
 import { useRouter } from "next/navigation";
 
 import {
+    useForm,
+} from "react-hook-form";
+
+import {
+    zodResolver,
+} from "@hookform/resolvers/zod";
+
+import {
     getTasks,
     getUsers,
     createTask,
@@ -25,7 +33,20 @@ import {
     User,
 } from "../../lib/api";
 
+import {
+    CreateTaskSchema,
+} from "../../../shared/schemas/task.schema";
+
+import {
+    z,
+} from "zod";
+
+
 const PAGE_SIZE = 5;
+
+type TaskFormData =
+    z.infer<typeof CreateTaskSchema>;
+
 
 export default function TasksPage() {
 
@@ -1039,7 +1060,9 @@ function TaskCard({
                             onClick={onMarkDone}
                             disabled={updating}
                         >
-                            {updating ? "Saving..." : "Mark done"}
+                            {updating
+                                ? "Saving..."
+                                : "Mark done"}
                         </button>
                     )}
 
@@ -1069,6 +1092,7 @@ function TaskCard({
 
 /* =====================================================
    TASK MODAL
+   React Hook Form + Zod
 ===================================================== */
 
 function TaskModal({
@@ -1094,26 +1118,34 @@ function TaskModal({
     error: string | null;
 }) {
 
-    const [taskTitle, setTaskTitle] =
-        useState(initialTitle);
+    const {
+        register,
+        handleSubmit,
+        formState: {
+            errors,
+            isValid,
+        },
+    } = useForm<TaskFormData>({
+        resolver: zodResolver(
+            CreateTaskSchema
+        ),
 
-    const [description, setDescription] =
-        useState(initialDescription);
+        mode: "onChange",
+
+        defaultValues: {
+            title: initialTitle,
+            description: initialDescription,
+        },
+    });
 
 
     function submit(
-        event: React.FormEvent
+        data: TaskFormData
     ) {
 
-        event.preventDefault();
-
-        if (!taskTitle.trim()) {
-            return;
-        }
-
         onSubmit(
-            taskTitle.trim(),
-            description.trim()
+            data.title,
+            data.description ?? ""
         );
     }
 
@@ -1141,7 +1173,7 @@ function TaskModal({
 
 
                 <form
-                    onSubmit={submit}
+                    onSubmit={handleSubmit(submit)}
                     className="task-form"
                 >
 
@@ -1150,15 +1182,16 @@ function TaskModal({
                     </label>
 
                     <input
-                        value={taskTitle}
-                        onChange={(event) =>
-                            setTaskTitle(
-                                event.target.value
-                            )
-                        }
+                        {...register("title")}
                         placeholder="Task title"
                         autoFocus
                     />
+
+                    {errors.title && (
+                        <div className="field-error">
+                            {errors.title.message}
+                        </div>
+                    )}
 
 
                     <label>
@@ -1166,15 +1199,16 @@ function TaskModal({
                     </label>
 
                     <textarea
-                        value={description}
-                        onChange={(event) =>
-                            setDescription(
-                                event.target.value
-                            )
-                        }
+                        {...register("description")}
                         placeholder="Task description"
                         rows={5}
                     />
+
+                    {errors.description && (
+                        <div className="field-error">
+                            {errors.description.message}
+                        </div>
+                    )}
 
 
                     {error && (
@@ -1199,7 +1233,7 @@ function TaskModal({
                             className="primary-button"
                             disabled={
                                 loading ||
-                                !taskTitle.trim()
+                                !isValid
                             }
                         >
                             {loading
