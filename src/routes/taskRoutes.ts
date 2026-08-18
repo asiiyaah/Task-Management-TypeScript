@@ -10,8 +10,17 @@ import {
 } from "../controllers/taskController";
 
 import {
-    authMiddleware
+    authMiddleware,
+    adminMiddleware
 } from "../middleware/authMiddleware";
+
+import { validate } from "../middleware/validationMiddleware";
+
+import {
+    CreateTaskSchema,
+    UpdateTaskSchema,
+    AssignTaskSchema
+} from "../../shared/schemas/task.schema";
 
 
 const router = Router();
@@ -34,6 +43,7 @@ router.get(
 router.post(
     "/tasks",
     authMiddleware,
+    validate(CreateTaskSchema),
     createTaskController
 );
 
@@ -41,6 +51,7 @@ router.post(
 router.put(
     "/tasks/:id",
     authMiddleware,
+    validate(UpdateTaskSchema),
     updateTaskController
 );
 
@@ -55,22 +66,8 @@ router.delete(
 router.post(
     "/tasks/:id/assign",
     authMiddleware,
-    (req, res, next) => {
-
-        if (!req.user) {
-            return res.status(401).json({
-                message: "Authentication required"
-            });
-        }
-
-        if (req.user.role !== "admin") {
-            return res.status(403).json({
-                message: "Admin access required"
-            });
-        }
-
-        next();
-    },
+    adminMiddleware,
+    validate(AssignTaskSchema),
     assignTaskController
 );
 

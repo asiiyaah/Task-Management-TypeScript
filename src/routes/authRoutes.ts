@@ -5,10 +5,29 @@ import {
     loginController
 } from "../controllers/authController";
 
+import { validate } from "../middleware/validationMiddleware";
+
+import {
+    RegisterSchema,
+    LoginSchema
+} from "../../shared/schemas/auth.schema";
+
+
 const router = Router();
 
-router.post("/auth/register", registerController);
 
-router.post("/auth/login", loginController);
+router.post(
+    "/auth/register",
+    validate(RegisterSchema),
+    registerController
+);
+
+
+router.post(
+    "/auth/login",
+    validate(LoginSchema),
+    loginController
+);
+
 
 export default router;

@@ -1,10 +1,10 @@
 import { prisma } from "../lib/prisma";
 
+import { Task } from "../types/task";
+
 import {
-    Task,
-    CreateTasks,
-    UpdateTask
-} from "../types/task";
+    UpdateTaskInput
+} from "../../shared/schemas/task.schema";
 
 
 export async function getAllTasks(): Promise<Task[]> {
@@ -18,7 +18,7 @@ export async function getAllTasks(): Promise<Task[]> {
 
 
 export async function getTasksForUser(
-    userId: string
+    userId: number
 ): Promise<Task[]> {
 
     return await prisma.task.findMany({
@@ -40,7 +40,7 @@ export async function getTasksForUser(
 
 
 export async function getTaskById(
-    id: string
+    id: number
 ): Promise<Task | null> {
 
     return await prisma.task.findUnique({
@@ -50,19 +50,19 @@ export async function getTaskById(
     });
 }
 
-
 export async function createTask(
-    task: Task
+    task: {
+        title: string;
+        description: string | null;
+        createdBy: number;
+        assignedTo: number | null;
+    }
 ): Promise<Task> {
 
     return await prisma.task.create({
         data: {
-            id: task.id,
             title: task.title,
             description: task.description,
-            completed: task.completed,
-            createdAt: task.createdAt,
-            updatedAt: task.updatedAt,
             createdBy: task.createdBy,
             assignedTo: task.assignedTo
         }
@@ -71,8 +71,8 @@ export async function createTask(
 
 
 export async function updateTask(
-    id: string,
-    data: UpdateTask
+    id: number,
+    data: UpdateTaskInput
 ): Promise<Task | null> {
 
     try {
@@ -92,7 +92,7 @@ export async function updateTask(
 
 
 export async function deleteTask(
-    id: string
+    id: number
 ): Promise<boolean> {
 
     try {
@@ -113,8 +113,8 @@ export async function deleteTask(
 
 
 export async function assignTask(
-    taskId: string,
-    userId: string
+    taskId: number,
+    userId: number
 ): Promise<Task | null> {
 
     try {

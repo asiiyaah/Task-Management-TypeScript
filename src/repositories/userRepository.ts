@@ -1,5 +1,9 @@
 import { prisma } from "../lib/prisma";
-import { User } from "../types/user";
+
+import {
+    User,
+    PublicUser
+} from "../types/user";
 
 
 export async function getUserByEmail(
@@ -24,7 +28,7 @@ export async function getUserByEmail(
 
 
 export async function getUserById(
-    id: string
+    id: number
 ): Promise<User | null> {
 
     const user = await prisma.user.findUnique({
@@ -45,12 +49,11 @@ export async function getUserById(
 
 
 export async function createUser(
-    user: User
+    user: Omit<User, "id">
 ): Promise<User> {
 
     const createdUser = await prisma.user.create({
         data: {
-            id: user.id,
             name: user.name,
             email: user.email,
             password: user.password,
@@ -64,7 +67,8 @@ export async function createUser(
     };
 }
 
-export async function getAllUsers(): Promise<User[]> {
+
+export async function getAllUsers(): Promise<PublicUser[]> {
 
     const users = await prisma.user.findMany({
         select: {

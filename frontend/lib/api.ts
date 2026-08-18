@@ -4,7 +4,7 @@ const API_URL =
 
 
 export interface User {
-    id: string;
+    id: number;
     name: string;
     email: string;
     role: "admin" | "user";
@@ -12,15 +12,15 @@ export interface User {
 
 
 export interface Task {
-    id: string;
+    id: number;
     title: string;
     description: string | null;
     completed: boolean;
     createdAt: string;
     updatedAt: string;
 
-    createdBy: string;
-    assignedTo: string | null;
+    createdBy: number;
+    assignedTo: number | null;
 }
 
 
@@ -169,7 +169,7 @@ export async function getTasks(): Promise<Task[]> {
 
 
 export async function getTask(
-    id: string
+    id: number
 ): Promise<Task> {
 
     return request<Task>(
@@ -197,7 +197,7 @@ export async function createTask(
 
 
 export async function updateTask(
-    id: string,
+    id: number,
     data: Partial<
         Pick<
             Task,
@@ -218,9 +218,8 @@ export async function updateTask(
     );
 }
 
-
 export async function deleteTask(
-    id: string
+    id: number
 ): Promise<{
     message: string;
 }> {
@@ -241,8 +240,8 @@ export async function deleteTask(
 ========================= */
 
 export async function assignTask(
-    taskId: string,
-    userId: string
+    taskId: number,
+    userId: number
 ): Promise<Task> {
 
     return request<Task>(
@@ -256,7 +255,6 @@ export async function assignTask(
         }
     );
 }
-
 export async function getUsers(): Promise<User[]> {
 
     return request<User[]>(

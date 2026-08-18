@@ -8,13 +8,13 @@ import * as authService
     from "../services/authServices";
 
 import {
-    RegisterRequest,
-    LoginRequest
-} from "../types/auth";
+    RegisterInput,
+    LoginInput
+} from "../../shared/schemas/auth.schema";
 
 
 export async function registerController(
-    req: Request<{}, {}, RegisterRequest>,
+    req: Request<{}, {}, RegisterInput>,
     res: Response,
     next: NextFunction
 ) {
@@ -39,7 +39,7 @@ export async function registerController(
 
 
 export async function loginController(
-    req: Request<{}, {}, LoginRequest>,
+    req: Request<{}, {}, LoginInput>,
     res: Response,
     next: NextFunction
 ) {

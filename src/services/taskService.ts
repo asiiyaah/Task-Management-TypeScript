@@ -8,18 +8,18 @@ import {
     assignTask as assignTaskRepository
 } from "../repositories/taskRepository";
 
+import { Task } from "../types/task";
+
 import {
-    Task,
-    CreateTasks,
-    UpdateTask
-} from "../types/task";
+    CreateTaskInput,
+    UpdateTaskInput
+} from "../../shared/schemas/task.schema";
 
 import * as userRepository
     from "../repositories/userRepository";
 
 
 function forbiddenError() {
-
     const error = new Error(
         "You do not have permission to access this task"
     );
@@ -35,7 +35,7 @@ function forbiddenError() {
 
 
 export async function getTasks(
-    userId: string,
+    userId: number,
     role: "user" | "admin"
 ): Promise<Task[]> {
 
@@ -48,8 +48,8 @@ export async function getTasks(
 
 
 export async function getTask(
-    id: string,
-    userId: string,
+    id: number,
+    userId: number,
     role: "user" | "admin"
 ): Promise<Task | null> {
 
@@ -76,29 +76,23 @@ export async function getTask(
 
 
 export async function createTask(
-    taskData: CreateTasks,
-    userId: string
+    taskData: CreateTaskInput,
+    userId: number
 ): Promise<Task> {
 
-    const task: Task = {
-        id: Date.now().toString(),
+    return await createTaskRepository({
         title: taskData.title,
         description: taskData.description ?? null,
-        completed: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
         createdBy: userId,
         assignedTo: null
-    };
-
-    return await createTaskRepository(task);
+    });
 }
 
 
 export async function updateTask(
-    id: string,
-    taskData: UpdateTask,
-    userId: string,
+    id: number,
+    taskData: UpdateTaskInput,
+    userId: number,
     role: "user" | "admin"
 ): Promise<Task | null> {
 
@@ -108,6 +102,26 @@ export async function updateTask(
         return null;
     }
 
+    // Admin can edit title/description,
+    // but cannot mark a task as completed.
+    if (
+        role === "admin" &&
+        taskData.completed !== undefined
+    ) {
+        const error = new Error(
+            "Admins cannot mark tasks as completed"
+        );
+
+        (
+            error as Error & {
+                statusCode: number
+            }
+        ).statusCode = 403;
+
+        throw error;
+    }
+
+    // Normal users must be the creator or assignee.
     if (role !== "admin") {
 
         const hasAccess =
@@ -127,8 +141,8 @@ export async function updateTask(
 
 
 export async function deleteTask(
-    id: string,
-    userId: string,
+    id: number,
+    userId: number,
     role: "user" | "admin"
 ): Promise<boolean> {
 
@@ -154,8 +168,8 @@ export async function deleteTask(
 
 
 export async function assignTask(
-    taskId: string,
-    userId: string
+    taskId: number,
+    userId: number
 ): Promise<Task | null> {
 
     const user =

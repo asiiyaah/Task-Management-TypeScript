@@ -150,7 +150,7 @@ export default function TasksPage() {
                 id,
                 data,
             }: {
-                id: string;
+                id: number;
                 data: Partial<
                     Pick<
                         Task,
@@ -204,8 +204,8 @@ export default function TasksPage() {
                 taskId,
                 userId,
             }: {
-                taskId: string;
-                userId: string;
+                taskId: number;
+                userId: number;
             }) =>
                 assignTask(
                     taskId,
@@ -333,7 +333,7 @@ export default function TasksPage() {
                 assignee === "all" ||
                 (assignee === "unassigned" &&
                     !task.assignedTo) ||
-                task.assignedTo === assignee;
+                task.assignedTo === Number(assignee);
 
             return (
                 matchesSearch &&
@@ -891,7 +891,7 @@ function TaskCard({
     onMarkDone: () => void;
     onEdit: () => void;
     onDelete: () => void;
-    onAssign: (userId: string) => void;
+    onAssign: (userId: number) => void;
     updating: boolean;
     assigning: boolean;
 }) {
@@ -903,6 +903,12 @@ function TaskCard({
         task.assignedTo ===
         currentUser?.id;
 
+    const canMarkDone =
+        currentUser?.role !== "admin" &&
+        (
+            task.createdBy === currentUser?.id ||
+            task.assignedTo === currentUser?.id
+        );
 
     return (
         <article className="task-card">
@@ -917,8 +923,8 @@ function TaskCard({
 
                     <span
                         className={`status ${task.completed
-                                ? "status-done"
-                                : "status-pending"
+                            ? "status-done"
+                            : "status-pending"
                             }`}
                     >
                         {task.completed
@@ -982,12 +988,10 @@ function TaskCard({
                                 onChange={(event) => {
 
                                     const userId =
-                                        event.target.value;
+                                        Number(event.target.value);
 
                                     if (userId) {
-                                        onAssign(
-                                            userId
-                                        );
+                                        onAssign(userId);
                                     }
 
                                 }}
@@ -1029,15 +1033,13 @@ function TaskCard({
             {canManage && (
                 <div className="task-actions">
 
-                    {!task.completed && (
+                    {!task.completed && canMarkDone && (
                         <button
                             className="done-button"
                             onClick={onMarkDone}
                             disabled={updating}
                         >
-                            {updating
-                                ? "Saving..."
-                                : "Mark done"}
+                            {updating ? "Saving..." : "Mark done"}
                         </button>
                     )}
 

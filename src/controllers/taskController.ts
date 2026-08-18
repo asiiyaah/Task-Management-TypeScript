@@ -17,12 +17,18 @@ import {
 } from "../services/taskService";
 
 
+function getTaskId(
+    req: AuthenticatedRequest
+): number {
+    return Number(req.params.id);
+}
+
+
 export async function getTasksController(
     req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
 ) {
-
     try {
 
         if (!req.user) {
@@ -50,7 +56,6 @@ export async function getTaskController(
     res: Response,
     next: NextFunction
 ) {
-
     try {
 
         if (!req.user) {
@@ -60,7 +65,7 @@ export async function getTaskController(
         }
 
         const task = await getTask(
-            req.params.id,
+            getTaskId(req),
             req.user.userId,
             req.user.role
         );
@@ -85,7 +90,6 @@ export async function createTaskController(
     res: Response,
     next: NextFunction
 ) {
-
     try {
 
         if (!req.user) {
@@ -113,7 +117,6 @@ export async function updateTaskController(
     res: Response,
     next: NextFunction
 ) {
-
     try {
 
         if (!req.user) {
@@ -123,7 +126,7 @@ export async function updateTaskController(
         }
 
         const task = await updateTask(
-            req.params.id,
+            getTaskId(req),
             req.body,
             req.user.userId,
             req.user.role
@@ -149,7 +152,6 @@ export async function deleteTaskController(
     res: Response,
     next: NextFunction
 ) {
-
     try {
 
         if (!req.user) {
@@ -160,7 +162,7 @@ export async function deleteTaskController(
 
         const deleted =
             await deleteTask(
-                req.params.id,
+                getTaskId(req),
                 req.user.userId,
                 req.user.role
             );
@@ -187,11 +189,10 @@ export async function assignTaskController(
     res: Response,
     next: NextFunction
 ) {
-
     try {
 
         const task = await assignTask(
-            req.params.id,
+            getTaskId(req),
             req.body.userId
         );
 

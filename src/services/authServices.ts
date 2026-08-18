@@ -2,11 +2,9 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 import {
-    RegisterRequest,
-    LoginRequest
-} from "../types/auth";
-
-import { User } from "../types/user";
+    RegisterInput,
+    LoginInput
+} from "../../shared/schemas/auth.schema";
 
 import * as userRepository
     from "../repositories/userRepository";
@@ -14,8 +12,9 @@ import * as userRepository
 const JWT_SECRET =
     process.env.JWT_SECRET || "my-secret-key";
 
+
 export async function register(
-    data: RegisterRequest
+    data: RegisterInput
 ) {
     const existingUser =
         await userRepository.getUserByEmail(data.email);
@@ -23,7 +22,9 @@ export async function register(
     if (existingUser) {
         const error = new Error("User already exists");
 
-        (error as Error & { statusCode: number }).statusCode = 409;
+        (error as Error & {
+            statusCode: number
+        }).statusCode = 409;
 
         throw error;
     }
@@ -31,12 +32,11 @@ export async function register(
     const hashedPassword =
         await bcrypt.hash(data.password, 10);
 
-    const user: User = {
-        id: Date.now().toString(),
+    const user = {
         name: data.name,
         email: data.email,
         password: hashedPassword,
-        role: "user"
+        role: "user" as const
     };
 
     const createdUser =
@@ -50,8 +50,9 @@ export async function register(
     return safeUser;
 }
 
+
 export async function login(
-    data: LoginRequest
+    data: LoginInput
 ) {
     const user =
         await userRepository.getUserByEmail(data.email);
@@ -61,7 +62,9 @@ export async function login(
             "Invalid email or password"
         );
 
-        (error as Error & { statusCode: number }).statusCode = 401;
+        (error as Error & {
+            statusCode: number
+        }).statusCode = 401;
 
         throw error;
     }
@@ -77,7 +80,9 @@ export async function login(
             "Invalid email or password"
         );
 
-        (error as Error & { statusCode: number }).statusCode = 401;
+        (error as Error & {
+            statusCode: number
+        }).statusCode = 401;
 
         throw error;
     }

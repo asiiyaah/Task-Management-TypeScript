@@ -1,4 +1,9 @@
-import { Request, Response, NextFunction } from "express";
+import {
+    Request,
+    Response,
+    NextFunction
+} from "express";
+
 import jwt from "jsonwebtoken";
 
 import { JwtPayload } from "../types/auth";
@@ -19,7 +24,6 @@ export function authMiddleware(
     res: Response,
     next: NextFunction
 ) {
-
     const authHeader =
         req.headers.authorization;
 
@@ -44,7 +48,6 @@ export function authMiddleware(
     const token = parts[1];
 
     try {
-
         const decoded =
             jwt.verify(
                 token,
@@ -55,8 +58,7 @@ export function authMiddleware(
 
         next();
 
-    } catch (error) {
-
+    } catch {
         return res.status(401).json({
             message: "Invalid or expired token"
         });
@@ -69,7 +71,6 @@ export function adminMiddleware(
     res: Response,
     next: NextFunction
 ) {
-
     if (!req.user) {
         return res.status(401).json({
             message: "Authentication required"
