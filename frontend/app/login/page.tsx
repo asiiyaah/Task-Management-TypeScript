@@ -15,28 +15,39 @@ export default function LoginPage() {
     const [error, setError] = useState("");
 
     async function handleSubmit(event: FormEvent) {
-        event.preventDefault();
+    event.preventDefault();
 
-        setLoading(true);
-        setError("");
+    setLoading(true);
+    setError("");
 
-        try {
-            const data = await login(email, password);
+    try {
+        const data = await login(
+            email,
+            password
+        );
 
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("user", JSON.stringify(data.user));
+        // JWT is now stored in an HTTP-only cookie
+        // Only store user information locally for UI purposes
+        localStorage.setItem(
+            "user",
+            JSON.stringify(data.user)
+        );
 
-            router.replace("/tasks");
-        } catch (error) {
-            setError(
-                error instanceof Error
-                    ? error.message
-                    : "Login failed"
-            );
-        } finally {
-            setLoading(false);
-        }
+        router.replace("/tasks");
+
+    } catch (error) {
+
+        setError(
+            error instanceof Error
+                ? error.message
+                : "Login failed"
+        );
+
+    } finally {
+
+        setLoading(false);
     }
+}
 
     return (
         <main className="auth-page">

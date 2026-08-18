@@ -2,8 +2,14 @@ import { Router } from "express";
 
 import {
     registerController,
-    loginController
+    loginController,
+    getCurrentUserController,
+    logoutController
 } from "../controllers/authController";
+
+import {
+    authMiddleware
+} from "../middleware/authMiddleware";
 
 import { validate } from "../middleware/validationMiddleware";
 
@@ -27,6 +33,18 @@ router.post(
     "/auth/login",
     validate(LoginSchema),
     loginController
+);
+
+router.get(
+    "/auth/me",
+    authMiddleware,
+    getCurrentUserController
+);
+
+
+router.post(
+    "/auth/logout",
+    logoutController
 );
 
 

@@ -6,7 +6,9 @@ import {
 
 import jwt from "jsonwebtoken";
 
-import { JwtPayload } from "../types/auth";
+import {
+    JwtPayload
+} from "../types/auth";
 
 
 const JWT_SECRET =
@@ -15,6 +17,7 @@ const JWT_SECRET =
 
 export interface AuthenticatedRequest
     extends Request {
+
     user?: JwtPayload;
 }
 
@@ -24,30 +27,20 @@ export function authMiddleware(
     res: Response,
     next: NextFunction
 ) {
-    const authHeader =
-        req.headers.authorization;
 
-    if (!authHeader) {
+    const token =
+        req.cookies?.token;
+
+    if (!token) {
+
         return res.status(401).json({
-            message: "Authentication token is required"
+            message:
+                "Authentication token is required"
         });
     }
-
-    const parts =
-        authHeader.split(" ");
-
-    if (
-        parts.length !== 2 ||
-        parts[0] !== "Bearer"
-    ) {
-        return res.status(401).json({
-            message: "Invalid authorization format"
-        });
-    }
-
-    const token = parts[1];
 
     try {
+
         const decoded =
             jwt.verify(
                 token,
@@ -59,8 +52,10 @@ export function authMiddleware(
         next();
 
     } catch {
+
         return res.status(401).json({
-            message: "Invalid or expired token"
+            message:
+                "Invalid or expired token"
         });
     }
 }
@@ -71,15 +66,20 @@ export function adminMiddleware(
     res: Response,
     next: NextFunction
 ) {
+
     if (!req.user) {
+
         return res.status(401).json({
-            message: "Authentication required"
+            message:
+                "Authentication required"
         });
     }
 
     if (req.user.role !== "admin") {
+
         return res.status(403).json({
-            message: "Admin access required"
+            message:
+                "Admin access required"
         });
     }
 

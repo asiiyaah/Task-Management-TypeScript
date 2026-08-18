@@ -110,3 +110,34 @@ export async function login(
         }
     };
 }
+
+export async function getCurrentUser(
+    userId: number
+) {
+
+    const user =
+        await userRepository.getUserById(
+            userId
+        );
+
+    if (!user) {
+
+        const error =
+            new Error("User not found");
+
+        (
+            error as Error & {
+                statusCode: number
+            }
+        ).statusCode = 401;
+
+        throw error;
+    }
+
+    return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+    };
+}

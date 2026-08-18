@@ -25,7 +25,6 @@ export interface Task {
 
 
 export interface LoginResponse {
-    token: string;
     user: User;
 }
 
@@ -41,27 +40,16 @@ async function request<T>(
     options: RequestInit = {}
 ): Promise<T> {
 
-    const token =
-        typeof window !== "undefined"
-            ? localStorage.getItem("token")
-            : null;
-
-
     const response = await fetch(
         `${API_URL}${endpoint}`,
         {
             ...options,
 
+            credentials: "include",
+
             headers: {
                 "Content-Type":
                     "application/json",
-
-                ...(token
-                    ? {
-                          Authorization:
-                              `Bearer ${token}`,
-                      }
-                    : {}),
 
                 ...options.headers,
             },
@@ -88,10 +76,6 @@ async function request<T>(
 
 
         if (response.status === 401) {
-
-            localStorage.removeItem(
-                "token"
-            );
 
             localStorage.removeItem(
                 "user"
@@ -155,6 +139,26 @@ export async function register(
     );
 }
 
+export async function getCurrentUser(): Promise<{
+    user: User;
+}> {
+
+    return request<{
+        user: User;
+    }>("/auth/me");
+}
+
+
+export async function logout(): Promise<{
+    message: string;
+}> {
+
+    return request<{
+        message: string;
+    }>("/auth/logout", {
+        method: "POST",
+    });
+}
 
 /* =========================
    TASKS
@@ -218,6 +222,7 @@ export async function updateTask(
     );
 }
 
+
 export async function deleteTask(
     id: number
 ): Promise<{
@@ -255,6 +260,8 @@ export async function assignTask(
         }
     );
 }
+
+
 export async function getUsers(): Promise<User[]> {
 
     return request<User[]>(
