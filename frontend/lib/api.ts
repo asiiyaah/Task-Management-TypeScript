@@ -1,4 +1,4 @@
-const API_URL =
+﻿const API_URL =
     process.env.NEXT_PUBLIC_API_URL ||
     "http://localhost:3000";
 
@@ -44,53 +44,30 @@ async function request<T>(
         `${API_URL}${endpoint}`,
         {
             ...options,
-
             credentials: "include",
-
             headers: {
-                "Content-Type":
-                    "application/json",
-
+                "Content-Type": "application/json",
                 ...options.headers,
             },
         }
     );
 
-
     if (!response.ok) {
-
-        let message =
-            "Something went wrong";
+        let message = "Something went wrong";
 
         try {
-
-            const data =
-                await response.json();
-
-            message =
-                data.message || message;
-
+            const data = await response.json();
+            message = data.message || message;
         } catch {
             // Ignore invalid JSON
         }
 
-
-        if (response.status === 401) {
-
-            localStorage.removeItem(
-                "user"
-            );
-        }
-
-
         throw new Error(message);
     }
-
 
     if (response.status === 204) {
         return undefined as T;
     }
-
 
     return response.json();
 }
@@ -109,7 +86,6 @@ export async function login(
         "/auth/login",
         {
             method: "POST",
-
             body: JSON.stringify({
                 email,
                 password,
@@ -118,6 +94,15 @@ export async function login(
     );
 }
 
+export async function getCurrentUser(): Promise<{ user: User }> {
+    return request<{ user: User }>("/auth/me");
+}
+
+export async function logout(): Promise<{ message: string }> {
+    return request<{ message: string }>("/auth/logout", {
+        method: "POST",
+    });
+}
 
 export async function register(
     name: string,
@@ -129,7 +114,6 @@ export async function register(
         "/auth/register",
         {
             method: "POST",
-
             body: JSON.stringify({
                 name,
                 email,
@@ -139,26 +123,6 @@ export async function register(
     );
 }
 
-export async function getCurrentUser(): Promise<{
-    user: User;
-}> {
-
-    return request<{
-        user: User;
-    }>("/auth/me");
-}
-
-
-export async function logout(): Promise<{
-    message: string;
-}> {
-
-    return request<{
-        message: string;
-    }>("/auth/logout", {
-        method: "POST",
-    });
-}
 
 /* =========================
    TASKS
@@ -222,7 +186,6 @@ export async function updateTask(
     );
 }
 
-
 export async function deleteTask(
     id: number
 ): Promise<{
@@ -260,8 +223,6 @@ export async function assignTask(
         }
     );
 }
-
-
 export async function getUsers(): Promise<User[]> {
 
     return request<User[]>(

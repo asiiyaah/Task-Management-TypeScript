@@ -4,12 +4,10 @@ import {
     NextFunction
 } from "express";
 
-import {
-    AuthenticatedRequest
-} from "../middleware/authMiddleware";
-
 import * as authService
     from "../services/authServices";
+
+import * as userRepository from "../repositories/userRepository";
 
 import {
     RegisterInput,
@@ -50,18 +48,22 @@ export async function loginController(
 
     try {
 
-        const result = await authService.login(req.body);
+        const result =
+            await authService.login(
+                req.body
+            );
 
+        // Set the JWT in an HTTP-only cookie named "token"
         res.cookie("token", result.token, {
             httpOnly: true,
             secure: false,
             sameSite: "lax",
-            maxAge: 60 * 60 * 1000,
+            path: "/",
+            maxAge: 60 * 60 * 1000, // 1 hour
         });
 
-        res.status(200).json({
-            user: result.user,
-        });
+        // Return only the user object to the client
+        res.status(200).json({ user: result.user });
 
     } catch (error) {
 
@@ -69,47 +71,52 @@ export async function loginController(
     }
 }
 
+
 export async function getCurrentUserController(
-    req: AuthenticatedRequest,
+    req: Request,
     res: Response,
     next: NextFunction
 ) {
-
     try {
+        const authReq = req as any;
 
-        if (!req.user) {
-            return res.status(401).json({
-                message: "Authentication required"
-            });
+        const userId = authReq.user?.userId as number | undefined;
+
+        if (!userId) {
+            return res.status(401).json({ message: "Authentication required" });
         }
 
-        const user =
-            await authService.getCurrentUser(
-                req.user.userId
-            );
+        const user = await userRepository.getUserById(userId);
 
-        res.status(200).json({
-            user
-        });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const { password, ...safeUser } = user as any;
+
+        res.status(200).json({ user: safeUser });
 
     } catch (error) {
-
         next(error);
     }
 }
 
-export function logoutController(
+
+export async function logoutController(
     req: Request,
-    res: Response
+    res: Response,
+    next: NextFunction
 ) {
+    try {
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: false,
+            sameSite: "lax",
+            path: "/",
+        });
 
-    res.clearCookie("token", {
-        httpOnly: true,
-        secure: false,
-        sameSite: "lax"
-    });
-
-    res.status(200).json({
-        message: "Logged out successfully"
-    });
+        res.status(200).json({ message: "Logged out successfully" });
+    } catch (error) {
+        next(error);
+    }
 }

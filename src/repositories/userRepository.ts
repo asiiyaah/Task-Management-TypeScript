@@ -82,7 +82,7 @@ export async function getAllUsers(): Promise<PublicUser[]> {
         }
     });
 
-    return users.map((user) => ({
+    return users.map((user: any) => ({
         ...user,
         role: user.role as "admin" | "user"
     }));

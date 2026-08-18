@@ -4,14 +4,11 @@ import {
     registerController,
     loginController,
     getCurrentUserController,
-    logoutController
+    logoutController,
 } from "../controllers/authController";
 
-import {
-    authMiddleware
-} from "../middleware/authMiddleware";
-
 import { validate } from "../middleware/validationMiddleware";
+import { authMiddleware } from "../middleware/authMiddleware";
 
 import {
     RegisterSchema,
@@ -35,17 +32,16 @@ router.post(
     loginController
 );
 
+
 router.get(
     "/auth/me",
     authMiddleware,
     getCurrentUserController
 );
 
-
 router.post(
     "/auth/logout",
     logoutController
 );
-
 
 export default router;

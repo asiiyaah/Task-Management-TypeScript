@@ -29,9 +29,10 @@ import {
     updateTask,
     deleteTask,
     assignTask,
+    getCurrentUser,
+    logout as logoutUser,
     Task,
     User,
-   logout as logoutUser,
 } from "../../lib/api";
 
 import {
@@ -76,34 +77,29 @@ export default function TasksPage() {
 
 
     /* -------------------------
-   Authentication
-------------------------- */
+       Authentication
+    ------------------------- */
 
     useEffect(() => {
+        let mounted = true;
 
-        async function checkAuthentication() {
-
+        (async () => {
             try {
+                const data = await getCurrentUser();
 
-                const data =
-                    await getCurrentUser();
+                if (!mounted) return;
 
-                setCurrentUser(
-                    data.user
-                );
-
+                setCurrentUser(data.user);
                 setAuthenticated(true);
-
-            } catch {
-
+            } catch (error) {
                 setAuthenticated(false);
-
                 router.replace("/login");
             }
-        }
+        })();
 
-        checkAuthentication();
-
+        return () => {
+            mounted = false;
+        };
     }, [router]);
 
 
@@ -416,23 +412,16 @@ export default function TasksPage() {
     ------------------------- */
 
     async function logout() {
-
-    try {
-
-        await logoutUser();
+        try {
+            await logoutUser();
+        } catch (error) {
+            console.error("Logout failed:", error);
+        }
 
         queryClient.clear();
 
         router.replace("/login");
-
-    } catch (error) {
-
-        console.error(
-            "Logout failed:",
-            error
-        );
     }
-}
 
 
     if (!authenticated) {
