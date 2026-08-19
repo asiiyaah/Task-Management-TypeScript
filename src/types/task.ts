@@ -11,7 +11,5 @@ export interface Task {
 
     updatedAt: Date;
 
-    createdBy: number;
-
     assignedTo: number | null;
 }

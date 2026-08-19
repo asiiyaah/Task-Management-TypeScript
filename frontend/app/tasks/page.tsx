@@ -515,14 +515,16 @@ export default function TasksPage() {
                     </div>
 
 
-                    <button
-                        className="primary-button create-button"
-                        onClick={() =>
-                            setShowCreate(true)
-                        }
-                    >
-                        + New Task
-                    </button>
+                    {currentUser?.role === "admin" && (
+                        <button
+                            className="primary-button create-button"
+                            onClick={() =>
+                                setShowCreate(true)
+                            }
+                        >
+                            + New Task
+                        </button>
+                    )}
 
                 </div>
 
@@ -564,35 +566,31 @@ export default function TasksPage() {
                     </select>
 
 
-                    <select
-                        value={assignee}
-                        onChange={(event) =>
-                            setAssignee(
-                                event.target.value
-                            )
-                        }
-                    >
+                    {currentUser?.role === "admin" && (
+                        <select
+                            value={assignee}
+                            onChange={(event) =>
+                                setAssignee(event.target.value)
+                            }
+                        >
+                            <option value="">
+                                All assignees
+                            </option>
 
-                        <option value="all">
-                            All assignees
-                        </option>
-
-                        <option value="unassigned">
-                            Unassigned
-                        </option>
-
-                        {assignees.map(
-                            (user) => (
-                                <option
-                                    key={user.id}
-                                    value={user.id}
-                                >
-                                    {user.name}
-                                </option>
-                            )
-                        )}
-
-                    </select>
+                            {users
+                                .filter(
+                                    (user) => user.role === "user"
+                                )
+                                .map((user) => (
+                                    <option
+                                        key={user.id}
+                                        value={user.id}
+                                    >
+                                        {user.name}
+                                    </option>
+                                ))}
+                        </select>
+                    )}
 
                 </div>
 
@@ -656,7 +654,9 @@ export default function TasksPage() {
                             </div>
 
                             <h3>
-                                No tasks found
+                                {currentUser?.role === "admin"
+        ? "No tasks have been created yet."
+        : "No tasks have been assigned to you yet."}
                             </h3>
 
                             <p>
@@ -910,19 +910,12 @@ function TaskCard({
     assigning: boolean;
 }) {
 
-    const canManage =
-        currentUser?.role === "admin" ||
-        task.createdBy ===
-        currentUser?.id ||
-        task.assignedTo ===
-        currentUser?.id;
+    const isAdmin =
+        currentUser?.role === "admin";
 
-    const canMarkDone =
-        currentUser?.role !== "admin" &&
-        (
-            task.createdBy === currentUser?.id ||
-            task.assignedTo === currentUser?.id
-        );
+    const isUser =
+        currentUser?.role === "user";
+
 
     return (
         <article className="task-card">
@@ -936,10 +929,11 @@ function TaskCard({
                     </h3>
 
                     <span
-                        className={`status ${task.completed
-                            ? "status-done"
-                            : "status-pending"
-                            }`}
+                        className={`status ${
+                            task.completed
+                                ? "status-done"
+                                : "status-pending"
+                        }`}
                     >
                         {task.completed
                             ? "Done"
@@ -962,92 +956,96 @@ function TaskCard({
                         ID: {task.id}
                     </span>
 
-                    <span>
-                        Created by:{" "}
-                        {task.createdBy ===
-                            currentUser?.id
-                            ? "You"
-                            : task.createdBy}
-                    </span>
 
-                    <span>
-                        {task.assignedTo
-                            ? `Assigned to: ${users.find(
-                                (user) =>
-                                    user.id ===
+                    {/* Admin can see assignment */}
+                    {isAdmin && (
+                        <span>
+                            {task.assignedTo
+                                ? `Assigned to: ${
+                                    users.find(
+                                        (user) =>
+                                            user.id ===
+                                            task.assignedTo
+                                    )?.name ||
                                     task.assignedTo
-                            )?.name ||
-                            task.assignedTo
-                            }`
-                            : "Unassigned"}
-                    </span>
+                                }`
+                                : "Unassigned"}
+                        </span>
+                    )}
 
                 </div>
 
 
-                {currentUser?.role ===
-                    "admin" && (
-                        <div className="assignment-row">
+                {/* Admin assignment control */}
 
-                            <label>
-                                Assign to:
-                            </label>
+                {isAdmin && (
+                    <div className="assignment-row">
 
-                            <select
-                                value={
-                                    task.assignedTo ||
-                                    ""
+                        <label>
+                            Assign to:
+                        </label>
+
+                        <select
+                            value={
+                                task.assignedTo || ""
+                            }
+                            disabled={assigning}
+                            onChange={(event) => {
+
+                                const userId =
+                                    Number(
+                                        event.target.value
+                                    );
+
+                                if (userId) {
+                                    onAssign(userId);
                                 }
-                                disabled={assigning}
-                                onChange={(event) => {
 
-                                    const userId =
-                                        Number(event.target.value);
+                            }}
+                        >
 
-                                    if (userId) {
-                                        onAssign(userId);
-                                    }
+                            <option value="">
+                                Select user
+                            </option>
 
-                                }}
-                            >
-
-                                <option value="">
-                                    Select user
-                                </option>
-
-                                {users
-                                    .filter(
-                                        (user) =>
-                                            user.role ===
-                                            "user"
+                            {users
+                                .filter(
+                                    (user) =>
+                                        user.role ===
+                                        "user"
+                                )
+                                .map(
+                                    (user) => (
+                                        <option
+                                            key={
+                                                user.id
+                                            }
+                                            value={
+                                                user.id
+                                            }
+                                        >
+                                            {user.name}
+                                        </option>
                                     )
-                                    .map(
-                                        (user) => (
-                                            <option
-                                                key={
-                                                    user.id
-                                                }
-                                                value={
-                                                    user.id
-                                                }
-                                            >
-                                                {user.name}
-                                            </option>
-                                        )
-                                    )}
+                                )}
 
-                            </select>
+                        </select>
 
-                        </div>
-                    )}
+                    </div>
+                )}
 
             </div>
 
 
-            {canManage && (
-                <div className="task-actions">
+            {/* Actions */}
 
-                    {!task.completed && canMarkDone && (
+            <div className="task-actions">
+
+                {/* Normal user can mark
+                    assigned task as done */}
+
+                {isUser &&
+                    !task.completed && (
                         <button
                             className="done-button"
                             onClick={onMarkDone}
@@ -1060,34 +1058,36 @@ function TaskCard({
                     )}
 
 
-                    <button
-                        className="secondary-button"
-                        onClick={onEdit}
-                    >
-                        Edit
-                    </button>
+                {/* Admin actions */}
 
+                {isAdmin && (
+                    <>
+                        <button
+                            className="secondary-button"
+                            onClick={onEdit}
+                        >
+                            Edit
+                        </button>
 
-                    <button
-                        className="danger-button"
-                        onClick={onDelete}
-                    >
-                        Delete
-                    </button>
+                        <button
+                            className="danger-button"
+                            onClick={onDelete}
+                        >
+                            Delete
+                        </button>
+                    </>
+                )}
 
-                </div>
-            )}
+            </div>
 
         </article>
     );
 }
 
-
 /* =====================================================
    TASK MODAL
    React Hook Form + Zod
 ===================================================== */
-
 function TaskModal({
     title,
     submitText,

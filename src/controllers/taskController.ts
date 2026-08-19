@@ -24,11 +24,16 @@ function getTaskId(
 }
 
 
+/* -------------------------
+   Get All / User Tasks
+------------------------- */
+
 export async function getTasksController(
     req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
 ) {
+
     try {
 
         if (!req.user) {
@@ -51,11 +56,16 @@ export async function getTasksController(
 }
 
 
+/* -------------------------
+   Get Single Task
+------------------------- */
+
 export async function getTaskController(
     req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
 ) {
+
     try {
 
         if (!req.user) {
@@ -85,11 +95,16 @@ export async function getTaskController(
 }
 
 
+/* -------------------------
+   Create Task
+------------------------- */
+
 export async function createTaskController(
     req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
 ) {
+
     try {
 
         if (!req.user) {
@@ -100,7 +115,7 @@ export async function createTaskController(
 
         const task = await createTask(
             req.body,
-            req.user.userId
+            req.user.role
         );
 
         return res.status(201).json(task);
@@ -112,11 +127,16 @@ export async function createTaskController(
 }
 
 
+/* -------------------------
+   Update Task
+------------------------- */
+
 export async function updateTaskController(
     req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
 ) {
+
     try {
 
         if (!req.user) {
@@ -147,11 +167,16 @@ export async function updateTaskController(
 }
 
 
+/* -------------------------
+   Delete Task
+------------------------- */
+
 export async function deleteTaskController(
     req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
 ) {
+
     try {
 
         if (!req.user) {
@@ -160,12 +185,10 @@ export async function deleteTaskController(
             });
         }
 
-        const deleted =
-            await deleteTask(
-                getTaskId(req),
-                req.user.userId,
-                req.user.role
-            );
+        const deleted = await deleteTask(
+            getTaskId(req),
+            req.user.role
+        );
 
         if (!deleted) {
             return res.status(404).json({
@@ -184,16 +207,28 @@ export async function deleteTaskController(
 }
 
 
+/* -------------------------
+   Assign Task
+------------------------- */
+
 export async function assignTaskController(
     req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
 ) {
+
     try {
+
+        if (!req.user) {
+            return res.status(401).json({
+                message: "Authentication required"
+            });
+        }
 
         const task = await assignTask(
             getTaskId(req),
-            req.body.userId
+            req.body.userId,
+            req.user.role
         );
 
         if (!task) {

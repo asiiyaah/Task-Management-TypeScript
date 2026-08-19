@@ -10,14 +10,13 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  password  String
-  role      String   @default("user")
+  id       Int    @id @default(autoincrement())
+  name     String
+  email    String @unique
+  password String
+  role     String @default("user")
 
-  tasks        Task[] @relation("TaskAssignee")
-  createdTasks Task[] @relation("TaskCreator")
+  tasks Task[] @relation("TaskAssignee")
 }
 
 model Task {
@@ -28,12 +27,8 @@ model Task {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  assignedTo  Int?
-  assignee    User?    @relation("TaskAssignee", fields: [assignedTo], references: [id])
-
-  createdBy   Int
-  creator     User     @relation("TaskCreator", fields: [createdBy], references: [id])
+  assignedTo Int?
+  assignee   User? @relation("TaskAssignee", fields: [assignedTo], references: [id])
 
   @@index([assignedTo])
-  @@index([createdBy])
 }

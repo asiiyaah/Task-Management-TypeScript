@@ -26,6 +26,12 @@ import {
 const router = Router();
 
 
+/* -------------------------
+   View Tasks
+------------------------- */
+
+// Admin → all tasks
+// User → only assigned tasks
 router.get(
     "/tasks",
     authMiddleware,
@@ -33,6 +39,8 @@ router.get(
 );
 
 
+// Admin → any task
+// User → assigned task only
 router.get(
     "/tasks/:id",
     authMiddleware,
@@ -40,35 +48,50 @@ router.get(
 );
 
 
+/* -------------------------
+   Admin Only
+------------------------- */
+
+// Create task
 router.post(
     "/tasks",
     authMiddleware,
+    adminMiddleware,
     validate(CreateTaskSchema),
     createTaskController
 );
 
 
-router.put(
-    "/tasks/:id",
-    authMiddleware,
-    validate(UpdateTaskSchema),
-    updateTaskController
-);
-
-
+// Delete task
 router.delete(
     "/tasks/:id",
     authMiddleware,
+    adminMiddleware,
     deleteTaskController
 );
 
 
+// Assign task
 router.post(
     "/tasks/:id/assign",
     authMiddleware,
     adminMiddleware,
     validate(AssignTaskSchema),
     assignTaskController
+);
+
+
+/* -------------------------
+   Update Task
+------------------------- */
+
+// Admin → edit task
+// User → mark assigned task as completed
+router.put(
+    "/tasks/:id",
+    authMiddleware,
+    validate(UpdateTaskSchema),
+    updateTaskController
 );
 
 

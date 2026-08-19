@@ -19,10 +19,8 @@ import * as userRepository
     from "../repositories/userRepository";
 
 
-function forbiddenError() {
-    const error = new Error(
-        "You do not have permission to access this task"
-    );
+function forbiddenError(message = "You do not have permission to perform this action") {
+    const error = new Error(message);
 
     (
         error as Error & {
@@ -33,6 +31,10 @@ function forbiddenError() {
     return error;
 }
 
+
+/* -------------------------
+   Get Tasks
+------------------------- */
 
 export async function getTasks(
     userId: number,
@@ -47,6 +49,10 @@ export async function getTasks(
 }
 
 
+/* -------------------------
+   Get Single Task
+------------------------- */
+
 export async function getTask(
     id: number,
     userId: number,
@@ -59,15 +65,13 @@ export async function getTask(
         return null;
     }
 
+    // Admin can view any task.
     if (role === "admin") {
         return task;
     }
 
-    const hasAccess =
-        task.createdBy === userId ||
-        task.assignedTo === userId;
-
-    if (!hasAccess) {
+    // Normal users can only view tasks assigned to them.
+    if (task.assignedTo !== userId) {
         throw forbiddenError();
     }
 
@@ -75,19 +79,33 @@ export async function getTask(
 }
 
 
+/* -------------------------
+   Create Task
+------------------------- */
+
 export async function createTask(
     taskData: CreateTaskInput,
-    userId: number
+    role: "user" | "admin"
 ): Promise<Task> {
+
+    // Only admins can create tasks.
+    if (role !== "admin") {
+        throw forbiddenError(
+            "Only admins can create tasks"
+        );
+    }
 
     return await createTaskRepository({
         title: taskData.title,
         description: taskData.description ?? null,
-        createdBy: userId,
         assignedTo: null
     });
 }
 
+
+/* -------------------------
+   Update Task
+------------------------- */
 
 export async function updateTask(
     id: number,
@@ -102,49 +120,78 @@ export async function updateTask(
         return null;
     }
 
-    // Admin can edit title/description,
-    // but cannot mark a task as completed.
-    if (
-        role === "admin" &&
-        taskData.completed !== undefined
-    ) {
-        const error = new Error(
-            "Admins cannot mark tasks as completed"
+
+    /* -------------------------
+       Admin
+    ------------------------- */
+
+    if (role === "admin") {
+
+        // Admin can update title,
+        // description and assignment-related data.
+
+        // Admin cannot mark tasks as completed.
+        if (taskData.completed !== undefined) {
+            throw forbiddenError(
+                "Admins cannot mark tasks as completed"
+            );
+        }
+
+        return await updateTaskRepository(
+            id,
+            taskData
         );
-
-        (
-            error as Error & {
-                statusCode: number
-            }
-        ).statusCode = 403;
-
-        throw error;
     }
 
-    // Normal users must be the creator or assignee.
-    if (role !== "admin") {
 
-        const hasAccess =
-            task.createdBy === userId ||
-            task.assignedTo === userId;
+    /* -------------------------
+       Normal User
+    ------------------------- */
 
-        if (!hasAccess) {
-            throw forbiddenError();
-        }
+    // User must be assigned to the task.
+    if (task.assignedTo !== userId) {
+        throw forbiddenError();
+    }
+
+    // Users can only mark their assigned task as completed.
+    const userUpdate: UpdateTaskInput = {};
+
+    if (taskData.completed !== undefined) {
+        userUpdate.completed = taskData.completed;
+    }
+
+    // Prevent users from changing title/description.
+    if (
+        taskData.title !== undefined ||
+        taskData.description !== undefined
+    ) {
+        throw forbiddenError(
+            "Users can only update task completion"
+        );
     }
 
     return await updateTaskRepository(
         id,
-        taskData
+        userUpdate
     );
 }
 
 
+/* -------------------------
+   Delete Task
+------------------------- */
+
 export async function deleteTask(
     id: number,
-    userId: number,
     role: "user" | "admin"
 ): Promise<boolean> {
+
+    // Only admins can delete tasks.
+    if (role !== "admin") {
+        throw forbiddenError(
+            "Only admins can delete tasks"
+        );
+    }
 
     const task = await getTaskById(id);
 
@@ -152,25 +199,26 @@ export async function deleteTask(
         return false;
     }
 
-    if (role !== "admin") {
-
-        const hasAccess =
-            task.createdBy === userId ||
-            task.assignedTo === userId;
-
-        if (!hasAccess) {
-            throw forbiddenError();
-        }
-    }
-
     return await deleteTaskRepository(id);
 }
 
 
+/* -------------------------
+   Assign Task
+------------------------- */
+
 export async function assignTask(
     taskId: number,
-    userId: number
+    userId: number,
+    role: "user" | "admin"
 ): Promise<Task | null> {
+
+    // Only admins can assign tasks.
+    if (role !== "admin") {
+        throw forbiddenError(
+            "Only admins can assign tasks"
+        );
+    }
 
     const user =
         await userRepository.getUserById(userId);

@@ -23,14 +23,7 @@ export async function getTasksForUser(
 
     return await prisma.task.findMany({
         where: {
-            OR: [
-                {
-                    createdBy: userId
-                },
-                {
-                    assignedTo: userId
-                }
-            ]
+            assignedTo: userId
         },
         orderBy: {
             createdAt: "desc"
@@ -50,11 +43,11 @@ export async function getTaskById(
     });
 }
 
+
 export async function createTask(
     task: {
         title: string;
         description: string | null;
-        createdBy: number;
         assignedTo: number | null;
     }
 ): Promise<Task> {
@@ -63,7 +56,6 @@ export async function createTask(
         data: {
             title: task.title,
             description: task.description,
-            createdBy: task.createdBy,
             assignedTo: task.assignedTo
         }
     });
